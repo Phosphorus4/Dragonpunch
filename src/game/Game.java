@@ -37,6 +37,8 @@ public class Game extends JPanel implements KeyListener, Runnable{
 	private Timer repainter;
 	private Character[] chars;
 	private boolean[] inputs;
+	
+	private ImageHash imghash;
 
 	public static void main(String[] args){
 		Game g = new Game();
@@ -44,15 +46,16 @@ public class Game extends JPanel implements KeyListener, Runnable{
 
 	public Game(){
 		super();
+		this.imghash = ImageHash.IMG;
 		this.setSize(new Dimension(640, 480));
 		this.addKeyListener(this);
 		this.setFocusable(true);
-		this.setBackground(Color.BLACK);
+		this.setBackground(Color.GRAY);
 		off = new Timer(1000,new ActionListener(){
 			public void actionPerformed(ActionEvent e) {
 				go = false;
 				off.stop();
-			}			
+			}
 		});
 		repainter = new Timer(20,new ActionListener(){
 			public void actionPerformed(ActionEvent e) {
@@ -89,6 +92,7 @@ public class Game extends JPanel implements KeyListener, Runnable{
 				System.exit(0);
 			ready = true;
 			win = false;
+			init();
 			repaint();
 			repainter.start();
 			try {
@@ -101,13 +105,20 @@ public class Game extends JPanel implements KeyListener, Runnable{
 			fade = 1f;
 			repainter.stop();
 			off.start();
-			init();
+//			init();
+//			repaint();
 			while(state){
 				long lop = System.currentTimeMillis();
 				chars[0].step(inputs[0], inputs[1]);
 				chars[1].step(inputs[3], inputs[2]);
 				boolean b1 = (chars[0].hitboxOut && !chars[1].crouched);
 				boolean b2 = (chars[1].hitboxOut && !chars[0].crouched);
+				if (b1){
+					chars[1].die();
+				}
+				if (b2){
+					chars[0].die();
+				}
 				if(b1 || b2){
 					if (b1 && b2){
 						winner = "Nobody";
@@ -123,9 +134,21 @@ public class Game extends JPanel implements KeyListener, Runnable{
 					state = false;
 					go = false;
 					win = true;
-					init();
-					repaint();
 				}
+				this.validate();
+				repaint();
+				inputs[1]=false;
+				inputs[2]=false;
+				try {
+					Thread.sleep(1000/60 - System.currentTimeMillis() + lop);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+			for (int i = 0; i < 40; i++){
+				long lop = System.currentTimeMillis();
+				chars[0].step(inputs[0], inputs[1]);
+				chars[1].step(inputs[3], inputs[2]);
 				this.validate();
 				repaint();
 				inputs[1]=false;
@@ -193,7 +216,7 @@ public class Game extends JPanel implements KeyListener, Runnable{
 			g.drawString(String.valueOf(left),0,20);
 			g.drawString(String.valueOf(right),620-g.getFontMetrics().stringWidth(String.valueOf(right)),20);
 			for (Character c: chars)
-				c.render((Graphics2D)g);
+				c.render((Graphics2D)g, imghash);
 			g.setColor(Color.WHITE);
 			g.drawString("Score",320-g.getFontMetrics().stringWidth("Score")/2,20);
 			if(ready){
