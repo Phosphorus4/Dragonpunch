@@ -41,7 +41,11 @@ public class Character {
 	private int frameCounter;
 	private int crouchCounter;
 	private int idleFrameCounter;
-	public Character (short dir){
+	
+	private int scrHeight, scrWidth;
+	
+	public Character(short dir, int w, int h){
+		this.scrWidth=w; this.scrHeight=h;
 		this.state = State.FREE;
 		this.direction = dir;
 		this.crouched = false;
@@ -85,6 +89,7 @@ public class Character {
 				if (frCtr == state.startup + state.active)
 					hitboxOut = false;
 				break;
+			default:
 			}
 			frameCounter--;
 			return;
@@ -154,11 +159,10 @@ public class Character {
 		}
 		
 		switch (state){
-		case DP: g2d4me.drawImage(img, 320 - 186 * direction, -52, 320 + 70 * direction, 440, 0, 0, img.getWidth(), img.getHeight(), null); break;
-		case DEATH: g2d4me.drawImage(img, 320 - 442 * direction, 184, 320 + 70 * direction, 440, 0, 0, img.getWidth(), img.getHeight(), null); break;
-		default: g2d4me.drawImage(img, 320 - 186 * direction, 184, 320 + 70 * direction, 440, 0, 0, img.getWidth(), img.getHeight(), null); break;
+		case DP: g2d4me.drawImage(img, scrWidth/2 - 93*scrWidth/320 * direction, -13*scrHeight/120,	scrWidth/2 + 7*scrWidth/64 * direction, scrHeight, 0, 0, img.getWidth(), img.getHeight(), null); break;
+		case DEATH: g2d4me.drawImage(img, scrWidth/2 - 221*scrWidth/320 * direction, 23*scrHeight/60, scrWidth/2 + 7*scrWidth/64 * direction, scrHeight, 0, 0, img.getWidth(), img.getHeight(), null); break;
+		default: g2d4me.drawImage(img, scrWidth/2 - 93*scrWidth/320 * direction, 23*scrHeight/60, scrWidth/2 + 7*scrWidth/64 * direction, scrHeight, 0, 0, img.getWidth(), img.getHeight(), null); break;
 		}
-		
 //		int frCt = state.getAnimationLength() - frameCounter;
 		
 //		if((state.getAnimationStatus(frCt) == 1)){
@@ -175,9 +179,9 @@ public class Character {
 //		switch (state) {
 //		case JAB:
 //			switch(state.getAnimationStatus(frCt)){
-//			case 0: g2d4me.fillRect(320 - direction * 15 - ((right)?(int)(30 * ((frCt + 0.0) / state.startup)):0), 390, (int)(30 * ((frCt + 0.0) / state.startup)), 10); break;
-//			case 1: g2d4me.fillRect(320 - direction * 15 - ((right)?50:0), 390, 50, 10); break;
-//			case 2: g2d4me.fillRect(320 - direction * 15 - ((right)?(int)(30 * ((frameCounter + 0.0) / (state.frames - state.active - state.startup))):0), 390, (int)(30 * ((frameCounter + 0.0) / (state.frames - state.active - state.startup))), 10); break;
+//			case 0: g2d4me.fillRect(scrWidth/2 - direction * 15 - ((right)?(int)(30 * ((frCt + 0.0) / state.startup)):0), 390, (int)(30 * ((frCt + 0.0) / state.startup)), 10); break;
+//			case 1: g2d4me.fillRect(scrWidth/2 - direction * 15 - ((right)?50:0), 390, 50, 10); break;
+//			case 2: g2d4me.fillRect(scrWidth/2 - direction * 15 - ((right)?(int)(30 * ((frameCounter + 0.0) / (state.frames - state.active - state.startup))):0), 390, (int)(30 * ((frameCounter + 0.0) / (state.frames - state.active - state.startup))), 10); break;
 //			}
 //			break;
 //		case DP:
@@ -191,6 +195,9 @@ public class Character {
 		crouched = true;
 		crouchCounter = MAX_CROUCH_DURATION;
 		changeState(State.DEATH);
+	}
+	public void setSpecs(int w, int h){
+		scrWidth=w; scrHeight=h;
 	}
 	private void inputSquat(){
 		crouched = true;
@@ -210,4 +217,5 @@ public class Character {
 		this.state = newState;
 		this.frameCounter = newState.getAnimationLength();
 	}
+	
 }

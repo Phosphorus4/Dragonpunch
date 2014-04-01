@@ -8,6 +8,8 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
@@ -16,11 +18,13 @@ import javax.swing.JPanel;
 import javax.swing.Timer;
 
 public class Game extends JPanel implements KeyListener, Runnable{
+	private static final long serialVersionUID = -3489344695381731317L;
 	
 	private String title = "DragonPunch";
 	private String controls = "P1: X and C         P4: . and /";
 	private String text = "Press SPACE to fight, or ESC to rage quit.";
 	private int[] keybinds = { KeyEvent.VK_X, KeyEvent.VK_C, KeyEvent.VK_PERIOD, KeyEvent.VK_SLASH };
+	private String font = "Battlefield Condensed";
 	
 	private boolean state = false;
 	private boolean running = false;
@@ -38,10 +42,12 @@ public class Game extends JPanel implements KeyListener, Runnable{
 	private Character[] chars;
 	private boolean[] inputs;
 	
+	private int scrHeight, scrWidth;
+	
 	private ImageHash imghash;
 
 	public static void main(String[] args){
-		Game g = new Game();
+		new Game();
 	}
 
 	public Game(){
@@ -50,7 +56,8 @@ public class Game extends JPanel implements KeyListener, Runnable{
 		this.setSize(new Dimension(640, 480));
 		this.addKeyListener(this);
 		this.setFocusable(true);
-		this.setBackground(Color.GRAY);
+		this.setBackground(Color.DARK_GRAY);
+		scrHeight=getHeight(); scrWidth=getWidth();
 		off = new Timer(1000,new ActionListener(){
 			public void actionPerformed(ActionEvent e) {
 				go = false;
@@ -72,7 +79,17 @@ public class Game extends JPanel implements KeyListener, Runnable{
 		Thread t = new Thread(this);
 		running = true;
 		t.start();
-		jf.setVisible(true);		
+		jf.setVisible(true);	
+		
+		addComponentListener(new ComponentListener(){
+			public void componentHidden(ComponentEvent e) {}
+			public void componentMoved(ComponentEvent e) {}
+			public void componentResized(ComponentEvent e) {
+				scrWidth=getWidth(); scrHeight=getHeight();
+				repaint();
+			}
+			public void componentShown(ComponentEvent arg0) {}
+		});
 	}
 
 
@@ -81,8 +98,8 @@ public class Game extends JPanel implements KeyListener, Runnable{
 		for( int i = 0 ; i < 4 ; i++ )
 			inputs[i] = false;
 		chars = new Character[2];
-		chars[0] = new Character((short)1);
-		chars[1] = new Character((short)-1);
+		chars[0] = new Character((short)1, scrWidth, scrHeight);
+		chars[1] = new Character((short)-1, scrWidth, scrHeight);
 	}
 	
 	public void run(){
@@ -121,7 +138,7 @@ public class Game extends JPanel implements KeyListener, Runnable{
 				}
 				if(b1 || b2){
 					if (b1 && b2){
-						winner = "Nobody";
+						winner = "Natural Selection";
 					} else {
 						if (b1){
 							left++;
@@ -191,12 +208,12 @@ public class Game extends JPanel implements KeyListener, Runnable{
 	}
 
 	public void title(Graphics g){
-		g.setFont(new Font("Comic Sans MS",Font.BOLD,72));
-		g.drawString(title,320-g.getFontMetrics().stringWidth(title)/2,160);
-		g.drawLine(100,170,540,170);
-		g.setFont(new Font("Comic Sans MS",Font.BOLD,24));
-		g.drawString(controls,320-g.getFontMetrics().stringWidth(controls)/2,240);
-		g.drawString(text,320-g.getFontMetrics().stringWidth(text)/2,320);
+		g.setFont(new Font(font,Font.BOLD,9*scrWidth/80));
+		g.drawString(title,scrWidth/2-g.getFontMetrics().stringWidth(title)/2,scrHeight/3);
+		g.drawLine(5*scrWidth/32,17*scrHeight/48,27*scrWidth/32,17*scrHeight/48);
+		g.setFont(new Font(font,Font.BOLD,3*scrWidth/80));
+		g.drawString(controls,scrWidth/2-g.getFontMetrics().stringWidth(controls)/2,scrHeight/2);
+		g.drawString(text,scrWidth/2-g.getFontMetrics().stringWidth(text)/2,2*scrHeight/3);
 	}
 	
 	@Override
@@ -208,32 +225,34 @@ public class Game extends JPanel implements KeyListener, Runnable{
 	
 	public void render(Graphics g){
 		super.paint(g);
-		g.setFont(new Font("Comic Sans MS",Font.BOLD,24));
+		g.setFont(new Font(font,Font.BOLD,3*scrWidth/80));
 		g.setColor(Color.WHITE);
 		if(!state && !win)
 			title(g);
 		else{
-			g.drawString(String.valueOf(left),0,20);
-			g.drawString(String.valueOf(right),620-g.getFontMetrics().stringWidth(String.valueOf(right)),20);
-			for (Character c: chars)
+			g.drawString(String.valueOf(left),scrWidth/32,scrHeight/24+scrWidth/160);
+			g.drawString(String.valueOf(right),31*scrWidth/32-g.getFontMetrics().stringWidth(String.valueOf(right)),scrHeight/24+scrWidth/160);
+			for (Character c: chars){
+				c.setSpecs(scrWidth, scrHeight);
 				c.render((Graphics2D)g, imghash);
+			}
 			g.setColor(Color.WHITE);
-			g.drawString("Score",320-g.getFontMetrics().stringWidth("Score")/2,20);
+			g.drawString("Score",scrWidth/2-g.getFontMetrics().stringWidth("Score")/2,scrHeight/24+scrWidth/160);
 			if(ready){
-				g.drawString("READY?",320-g.getFontMetrics().stringWidth("READY?")/2,160);
+				g.drawString("READY?",scrWidth/2-g.getFontMetrics().stringWidth("READY?")/2,scrHeight/3);
 				g.setColor(new Color(0,0,0,fade));
-				g.fillRect(0,0,640,480);
+				g.fillRect(0,0,scrWidth,scrHeight);
 				g.setColor(Color.WHITE);
 				fade-=.01f;
 				if(fade<0)
 					fade = 0;
 			}	
 			if(go)
-				g.drawString("GO!",320-g.getFontMetrics().stringWidth("GO!")/2,160);
+				g.drawString("GO!",scrWidth/2-g.getFontMetrics().stringWidth("GO!")/2,scrHeight/3);
 			if(win){
-				g.drawString(winner + " is the winner!",320-g.getFontMetrics().stringWidth(winner + " is the winner!")/2,160);
-				g.setFont(new Font("Comic Sans MS",Font.BOLD,24));
-				g.drawString(text,320-g.getFontMetrics().stringWidth(text)/2,320);
+				g.drawString(winner + " is the winner!",scrWidth/2-g.getFontMetrics().stringWidth(winner + " is the winner!")/2, scrHeight/3);
+				g.setFont(new Font(font,Font.BOLD,3*scrWidth/80));
+				g.drawString(text,scrWidth/2-g.getFontMetrics().stringWidth(text)/2,2*scrHeight/3);
 			}	
 		}
 	}
