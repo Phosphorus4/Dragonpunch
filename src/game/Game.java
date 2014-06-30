@@ -91,8 +91,7 @@ public class Game extends JPanel implements KeyListener, Runnable{
 			public void componentShown(ComponentEvent arg0) {}
 		});
 	}
-
-
+	
 	public void init(){
 		inputs = new boolean[4];
 		for( int i = 0 ; i < 4 ; i++ )
